@@ -1,0 +1,437 @@
+//@version=6
+strategy(
+     title = "Warrior Labs EURUSD 3R v3",
+     shorttitle = "WL EURUSD 3R",
+     overlay = true,
+     initial_capital = 10000,
+     pyramiding = 0,
+     default_qty_type = strategy.percent_of_equity,
+     default_qty_value = 10,
+     process_orders_on_close = true,
+     calc_on_order_fills = false,
+     calc_on_every_tick = false,
+     commission_type = strategy.commission.percent,
+     commission_value = 0,
+     slippage = 5,
+     margin_long = 100,
+     margin_short = 100
+)
+
+//=============================================================================
+// INPUTS
+//=============================================================================
+
+string GROUP_SESSIONS = "1. EURUSD sessions"
+string GROUP_FILTERS  = "2. Entry filters"
+string GROUP_RISK     = "3. Risk management"
+string GROUP_DISPLAY  = "4. Display"
+
+string asiaSession = input.session("0000-0700", "Asian range — London time", group = GROUP_SESSIONS)
+string londonSession = input.session("0700-1030", "London entry window", group = GROUP_SESSIONS)
+string londonRangeSession = input.session("0700-1200", "London range for New York", group = GROUP_SESSIONS)
+string newYorkSession = input.session("0800-1100", "New York entry window", group = GROUP_SESSIONS)
+
+bool tradeLondon = input.bool(true, "Trade London", group = GROUP_SESSIONS)
+bool tradeNewYork = input.bool(true, "Trade New York", group = GROUP_SESSIONS)
+bool tradeMonday = input.bool(false, "Trade Monday", group = GROUP_SESSIONS)
+bool tradeFriday = input.bool(false, "Trade Friday", group = GROUP_SESSIONS)
+
+int mssLookback = input.int(5, "MSS lookback", minval = 2, maxval = 20, group = GROUP_FILTERS)
+int confirmationBars = input.int(6, "Bars allowed after sweep", minval = 1, maxval = 20, group = GROUP_FILTERS)
+int bodyAverageLength = input.int(20, "Average candle body", minval = 5, maxval = 100, group = GROUP_FILTERS)
+float displacementMultiplier = input.float(1.20, "Displacement multiplier", minval = 0.50, maxval = 3.00, step = 0.05, group = GROUP_FILTERS)
+int dmiLength = input.int(14, "DMI length", minval = 5, maxval = 50, group = GROUP_FILTERS)
+int adxSmoothing = input.int(14, "ADX smoothing", minval = 5, maxval = 50, group = GROUP_FILTERS)
+float minimumAdx = input.float(18.0, "Minimum ADX", minval = 5, maxval = 50, step = 1, group = GROUP_FILTERS)
+bool requireTargetRoom = input.bool(true, "Require clear space to target", group = GROUP_FILTERS)
+
+int atrLength = input.int(14, "ATR length", minval = 5, maxval = 100, group = GROUP_RISK)
+float stopAtrBuffer = input.float(0.15, "Stop buffer, ATR", minval = 0, maxval = 2, step = 0.05, group = GROUP_RISK)
+float minimumStopPips = input.float(4.0, "Minimum stop, pips", minval = 2, maxval = 30, step = 0.5, group = GROUP_RISK)
+float maximumStopPips = input.float(16.0, "Maximum stop, pips", minval = 5, maxval = 50, step = 0.5, group = GROUP_RISK)
+float riskReward = input.float(3.0, "Risk/reward", minval = 3.0, maxval = 6.0, step = 0.25, group = GROUP_RISK)
+bool useBreakEven = input.bool(true, "Move stop to breakeven", group = GROUP_RISK)
+float breakEvenAtR = input.float(1.5, "Breakeven activation, R", minval = 1.0, maxval = 2.5, step = 0.25, group = GROUP_RISK)
+float breakEvenOffsetPips = input.float(0.2, "Breakeven offset, pips", minval = 0, maxval = 3, step = 0.1, group = GROUP_RISK)
+
+bool showDashboard = input.bool(true, "Show dashboard", group = GROUP_DISPLAY)
+bool showTradeLevels = input.bool(true, "Show active Entry / SL / TP", group = GROUP_DISPLAY)
+bool showSessionRanges = input.bool(false, "Show Asia and London ranges", group = GROUP_DISPLAY)
+bool showSessionBackground = input.bool(false, "Show session background", group = GROUP_DISPLAY)
+bool showEntryMarkers = input.bool(true, "Show entry markers", group = GROUP_DISPLAY)
+
+//=============================================================================
+// HELPERS
+//=============================================================================
+
+float PIP = 0.0001
+
+f_price(float value) =>
+    na(value) ? "—" : str.tostring(value, format.mintick)
+
+f_nearest_above(float firstLevel, float secondLevel, float currentPrice) =>
+    float nearest = na
+    if not na(firstLevel) and firstLevel > currentPrice
+        nearest := firstLevel
+    if not na(secondLevel) and secondLevel > currentPrice
+        nearest := na(nearest) ? secondLevel : math.min(nearest, secondLevel)
+    nearest
+
+f_nearest_below(float firstLevel, float secondLevel, float currentPrice) =>
+    float nearest = na
+    if not na(firstLevel) and firstLevel < currentPrice
+        nearest := firstLevel
+    if not na(secondLevel) and secondLevel < currentPrice
+        nearest := na(nearest) ? secondLevel : math.max(nearest, secondLevel)
+    nearest
+
+//=============================================================================
+// CHART VALIDATION
+//=============================================================================
+
+bool isEurUsd = str.contains(syminfo.ticker, "EURUSD")
+bool validTimeframe = timeframe.isminutes and (timeframe.multiplier == 5 or timeframe.multiplier == 15)
+bool validDay = dayofweek != dayofweek.saturday and dayofweek != dayofweek.sunday and (dayofweek != dayofweek.monday or tradeMonday) and (dayofweek != dayofweek.friday or tradeFriday)
+
+//=============================================================================
+// SESSIONS — IANA TIME ZONES HANDLE DST
+//=============================================================================
+
+bool inAsia = not na(time(timeframe.period, asiaSession, "Europe/London"))
+bool inLondon = not na(time(timeframe.period, londonSession, "Europe/London"))
+bool inLondonRange = not na(time(timeframe.period, londonRangeSession, "Europe/London"))
+bool inNewYork = not na(time(timeframe.period, newYorkSession, "America/New_York"))
+
+bool asiaStarted = inAsia and not inAsia[1]
+bool londonStarted = inLondon and not inLondon[1]
+bool londonRangeStarted = inLondonRange and not inLondonRange[1]
+bool newYorkStarted = inNewYork and not inNewYork[1]
+
+//=============================================================================
+// SESSION RANGES
+//=============================================================================
+
+var float asiaHigh = na
+var float asiaLow = na
+
+if asiaStarted
+    asiaHigh := high
+    asiaLow := low
+else if inAsia
+    asiaHigh := math.max(nz(asiaHigh, high), high)
+    asiaLow := math.min(nz(asiaLow, low), low)
+
+var float londonHigh = na
+var float londonLow = na
+
+if londonRangeStarted
+    londonHigh := high
+    londonLow := low
+else if inLondonRange
+    londonHigh := math.max(nz(londonHigh, high), high)
+    londonLow := math.min(nz(londonLow, low), low)
+
+//=============================================================================
+// PREVIOUS DAY + NON-REPAINTING HTF DATA
+//=============================================================================
+
+[previousDayHigh, previousDayLow] = request.security(
+     syminfo.tickerid,
+     "D",
+     [high[1], low[1]],
+     gaps = barmerge.gaps_off,
+     lookahead = barmerge.lookahead_on
+)
+
+[h1Close, h1Ema50, h1Ema200] = request.security(
+     syminfo.tickerid,
+     "60",
+     [close[1], ta.ema(close, 50)[1], ta.ema(close, 200)[1]],
+     gaps = barmerge.gaps_off,
+     lookahead = barmerge.lookahead_on
+)
+
+[h4Close, h4Ema50] = request.security(
+     syminfo.tickerid,
+     "240",
+     [close[1], ta.ema(close, 50)[1]],
+     gaps = barmerge.gaps_off,
+     lookahead = barmerge.lookahead_on
+)
+
+bool bullishHtf = h1Close > h1Ema50 and h1Ema50 > h1Ema200 and h4Close > h4Ema50
+bool bearishHtf = h1Close < h1Ema50 and h1Ema50 < h1Ema200 and h4Close < h4Ema50
+
+//=============================================================================
+// LOCAL CONFIRMATION
+//=============================================================================
+
+float ema20 = ta.ema(close, 20)
+float ema50 = ta.ema(close, 50)
+float atr = ta.atr(atrLength)
+float candleBody = math.abs(close - open)
+float averageBody = ta.sma(candleBody, bodyAverageLength)
+float candleRange = high - low
+float closeLocation = candleRange > 0 ? (close - low) / candleRange : 0.5
+
+[plusDi, minusDi, adx] = ta.dmi(dmiLength, adxSmoothing)
+
+bool bullishDisplacement = close > open and candleBody >= averageBody * displacementMultiplier and closeLocation >= 0.70
+bool bearishDisplacement = close < open and candleBody >= averageBody * displacementMultiplier and closeLocation <= 0.30
+bool bullishMomentum = ema20 > ema50 and plusDi > minusDi and adx >= minimumAdx
+bool bearishMomentum = ema20 < ema50 and minusDi > plusDi and adx >= minimumAdx
+
+float structureHigh = ta.highest(high[1], mssLookback)
+float structureLow = ta.lowest(low[1], mssLookback)
+
+//=============================================================================
+// SETUP STATE MACHINE
+// setupDirection: 1 = long, -1 = short, 0 = none
+//=============================================================================
+
+var int setupDirection = 0
+var string setupSession = "—"
+var int setupBar = na
+var float setupExtreme = na
+var float setupMssLevel = na
+
+var bool londonTradeTaken = false
+var bool newYorkTradeTaken = false
+
+if londonStarted
+    londonTradeTaken := false
+    setupDirection := 0
+
+if newYorkStarted
+    newYorkTradeTaken := false
+    setupDirection := 0
+
+bool londonSellSweep = inLondon and not londonTradeTaken and not na(asiaLow) and low < asiaLow and close > asiaLow
+bool londonBuySweep = inLondon and not londonTradeTaken and not na(asiaHigh) and high > asiaHigh and close < asiaHigh
+
+bool newYorkSellSweep = inNewYork and not newYorkTradeTaken and ((not na(londonLow) and low < londonLow and close > londonLow) or (low < previousDayLow and close > previousDayLow))
+bool newYorkBuySweep = inNewYork and not newYorkTradeTaken and ((not na(londonHigh) and high > londonHigh and close < londonHigh) or (high > previousDayHigh and close < previousDayHigh))
+
+if londonSellSweep
+    setupDirection := 1
+    setupSession := "LONDON"
+    setupBar := bar_index
+    setupExtreme := low
+    setupMssLevel := structureHigh
+else if londonBuySweep
+    setupDirection := -1
+    setupSession := "LONDON"
+    setupBar := bar_index
+    setupExtreme := high
+    setupMssLevel := structureLow
+else if newYorkSellSweep
+    setupDirection := 1
+    setupSession := "NEW YORK"
+    setupBar := bar_index
+    setupExtreme := low
+    setupMssLevel := structureHigh
+else if newYorkBuySweep
+    setupDirection := -1
+    setupSession := "NEW YORK"
+    setupBar := bar_index
+    setupExtreme := high
+    setupMssLevel := structureLow
+
+int barsAfterSweep = na(setupBar) ? 100000 : bar_index - setupBar
+bool setupFresh = barsAfterSweep > 0 and barsAfterSweep <= confirmationBars
+bool setupWindowOpen = (setupSession == "LONDON" and inLondon) or (setupSession == "NEW YORK" and inNewYork)
+bool setupSessionFree = (setupSession == "LONDON" and tradeLondon and not londonTradeTaken) or (setupSession == "NEW YORK" and tradeNewYork and not newYorkTradeTaken)
+
+if setupDirection != 0 and (barsAfterSweep > confirmationBars or not setupWindowOpen)
+    setupDirection := 0
+
+bool longConfirmed = setupDirection == 1 and setupFresh and setupWindowOpen and setupSessionFree and close > setupMssLevel and bullishDisplacement and bullishMomentum and bullishHtf
+bool shortConfirmed = setupDirection == -1 and setupFresh and setupWindowOpen and setupSessionFree and close < setupMssLevel and bearishDisplacement and bearishMomentum and bearishHtf
+
+//=============================================================================
+// ORDER STATE
+//=============================================================================
+
+var float activeEntry = na
+var float activeStop = na
+var float activeTarget = na
+var float activeRisk = na
+var string activeTradeSession = "—"
+
+bool enteredLong = false
+bool enteredShort = false
+
+bool canEnter = isEurUsd and validTimeframe and validDay and strategy.position_size == 0
+
+if canEnter and longConfirmed
+    float entryPrice = close
+    float rawStop = setupExtreme - atr * stopAtrBuffer
+    float rawRisk = entryPrice - rawStop
+    float finalRisk = math.max(rawRisk, minimumStopPips * PIP)
+    float stopPrice = entryPrice - finalRisk
+    float targetPrice = entryPrice + finalRisk * riskReward
+    float opposingLiquidity = setupSession == "LONDON" ? f_nearest_above(asiaHigh, previousDayHigh, entryPrice) : f_nearest_above(londonHigh, previousDayHigh, entryPrice)
+    bool validStop = finalRisk > 0 and finalRisk <= maximumStopPips * PIP
+    bool clearTarget = not requireTargetRoom or na(opposingLiquidity) or opposingLiquidity >= targetPrice
+
+    if validStop and clearTarget
+        activeEntry := entryPrice
+        activeStop := stopPrice
+        activeTarget := targetPrice
+        activeRisk := finalRisk
+        activeTradeSession := setupSession
+        strategy.entry("LONG", strategy.long)
+        strategy.exit("LONG EXIT", from_entry = "LONG", stop = activeStop, limit = activeTarget)
+        enteredLong := true
+        if setupSession == "LONDON"
+            londonTradeTaken := true
+        else
+            newYorkTradeTaken := true
+        setupDirection := 0
+
+else if canEnter and shortConfirmed
+    float entryPrice = close
+    float rawStop = setupExtreme + atr * stopAtrBuffer
+    float rawRisk = rawStop - entryPrice
+    float finalRisk = math.max(rawRisk, minimumStopPips * PIP)
+    float stopPrice = entryPrice + finalRisk
+    float targetPrice = entryPrice - finalRisk * riskReward
+    float opposingLiquidity = setupSession == "LONDON" ? f_nearest_below(asiaLow, previousDayLow, entryPrice) : f_nearest_below(londonLow, previousDayLow, entryPrice)
+    bool validStop = finalRisk > 0 and finalRisk <= maximumStopPips * PIP
+    bool clearTarget = not requireTargetRoom or na(opposingLiquidity) or opposingLiquidity <= targetPrice
+
+    if validStop and clearTarget
+        activeEntry := entryPrice
+        activeStop := stopPrice
+        activeTarget := targetPrice
+        activeRisk := finalRisk
+        activeTradeSession := setupSession
+        strategy.entry("SHORT", strategy.short)
+        strategy.exit("SHORT EXIT", from_entry = "SHORT", stop = activeStop, limit = activeTarget)
+        enteredShort := true
+        if setupSession == "LONDON"
+            londonTradeTaken := true
+        else
+            newYorkTradeTaken := true
+        setupDirection := 0
+
+//=============================================================================
+// POSITION MANAGEMENT
+//=============================================================================
+
+if strategy.position_size > 0 and not na(activeRisk)
+    bool breakEvenReached = high >= activeEntry + activeRisk * breakEvenAtR
+    if useBreakEven and breakEvenReached
+        activeStop := math.max(activeStop, activeEntry + breakEvenOffsetPips * PIP)
+    strategy.exit("LONG EXIT", from_entry = "LONG", stop = activeStop, limit = activeTarget)
+
+if strategy.position_size < 0 and not na(activeRisk)
+    bool breakEvenReached = low <= activeEntry - activeRisk * breakEvenAtR
+    if useBreakEven and breakEvenReached
+        activeStop := math.min(activeStop, activeEntry - breakEvenOffsetPips * PIP)
+    strategy.exit("SHORT EXIT", from_entry = "SHORT", stop = activeStop, limit = activeTarget)
+
+bool tradeJustClosed = strategy.position_size == 0 and strategy.position_size[1] != 0
+
+if tradeJustClosed
+    activeEntry := na
+    activeStop := na
+    activeTarget := na
+    activeRisk := na
+    activeTradeSession := "—"
+
+//=============================================================================
+// STATISTICS
+//=============================================================================
+
+float winRate = strategy.closedtrades > 0 ? strategy.wintrades * 100.0 / strategy.closedtrades : na
+float profitFactor = strategy.grossloss > 0 ? strategy.grossprofit / strategy.grossloss : na
+float activeStopPips = not na(activeRisk) ? activeRisk / PIP : na
+
+string sessionText = inLondon ? "LONDON" : inNewYork ? "NEW YORK" : inAsia ? "ASIA" : "OFF"
+string biasText = bullishHtf ? "BULLISH" : bearishHtf ? "BEARISH" : "NEUTRAL"
+string setupText = setupDirection == 1 ? "WAIT LONG MSS" : setupDirection == -1 ? "WAIT SHORT MSS" : "NONE"
+string positionText = strategy.position_size > 0 ? "LONG" : strategy.position_size < 0 ? "SHORT" : "FLAT"
+string chartStatus = not isEurUsd ? "OPEN EURUSD" : not validTimeframe ? "USE 5m OR 15m" : "READY"
+
+//=============================================================================
+// CLEAN CHART
+//=============================================================================
+
+plot(showTradeLevels and strategy.position_size != 0 ? activeEntry : na, "Entry", color.blue, 2, plot.style_linebr)
+plot(showTradeLevels and strategy.position_size != 0 ? activeStop : na, "Stop loss", color.red, 2, plot.style_linebr)
+plot(showTradeLevels and strategy.position_size != 0 ? activeTarget : na, "Take profit", color.lime, 2, plot.style_linebr)
+
+plot(showSessionRanges ? asiaHigh : na, "Asia high", color.new(color.gray, 70), 1, plot.style_stepline)
+plot(showSessionRanges ? asiaLow : na, "Asia low", color.new(color.gray, 70), 1, plot.style_stepline)
+plot(showSessionRanges ? londonHigh : na, "London high", color.new(color.orange, 75), 1, plot.style_stepline)
+plot(showSessionRanges ? londonLow : na, "London low", color.new(color.orange, 75), 1, plot.style_stepline)
+
+plotshape(showEntryMarkers and enteredLong, title = "Long entry", text = "LONG", style = shape.labelup, location = location.belowbar, color = color.lime, textcolor = color.black, size = size.tiny)
+plotshape(showEntryMarkers and enteredShort, title = "Short entry", text = "SHORT", style = shape.labeldown, location = location.abovebar, color = color.red, textcolor = color.white, size = size.tiny)
+
+color sessionBackground = inLondon ? color.new(color.blue, 94) : inNewYork ? color.new(color.orange, 94) : na
+bgcolor(showSessionBackground ? sessionBackground : na)
+
+//=============================================================================
+// DASHBOARD — NO barstate.islast WARNINGS
+//=============================================================================
+
+var table dashboard = table.new(position.top_right, 2, 14, frame_color = color.new(color.gray, 55), frame_width = 1, border_color = color.new(color.gray, 80), border_width = 1)
+bool updateDashboard = barstate.islastconfirmedhistory or barstate.isrealtime
+
+if updateDashboard and showDashboard
+    color header = color.rgb(31, 41, 55)
+    color panel = color.new(color.black, 15)
+
+    table.cell(dashboard, 0, 0, "WARRIOR LABS", text_color = color.white, bgcolor = header)
+    table.cell(dashboard, 1, 0, "EURUSD 3R", text_color = color.white, bgcolor = header)
+
+    table.cell(dashboard, 0, 1, "Chart", text_color = color.silver, bgcolor = panel)
+    table.cell(dashboard, 1, 1, chartStatus, text_color = chartStatus == "READY" ? color.lime : color.red, bgcolor = panel)
+
+    table.cell(dashboard, 0, 2, "Session", text_color = color.silver)
+    table.cell(dashboard, 1, 2, sessionText, text_color = color.white)
+
+    table.cell(dashboard, 0, 3, "HTF bias", text_color = color.silver)
+    table.cell(dashboard, 1, 3, biasText, text_color = bullishHtf ? color.lime : bearishHtf ? color.red : color.orange)
+
+    table.cell(dashboard, 0, 4, "Setup", text_color = color.silver)
+    table.cell(dashboard, 1, 4, setupText, text_color = setupDirection == 1 ? color.lime : setupDirection == -1 ? color.red : color.gray)
+
+    table.cell(dashboard, 0, 5, "Position", text_color = color.silver)
+    table.cell(dashboard, 1, 5, positionText, text_color = strategy.position_size > 0 ? color.lime : strategy.position_size < 0 ? color.red : color.orange)
+
+    table.cell(dashboard, 0, 6, "Trade session", text_color = color.silver)
+    table.cell(dashboard, 1, 6, activeTradeSession, text_color = color.white)
+
+    table.cell(dashboard, 0, 7, "Entry", text_color = color.silver)
+    table.cell(dashboard, 1, 7, f_price(activeEntry), text_color = color.aqua)
+
+    table.cell(dashboard, 0, 8, "Stop loss", text_color = color.silver)
+    table.cell(dashboard, 1, 8, f_price(activeStop), text_color = color.red)
+
+    table.cell(dashboard, 0, 9, "Take profit", text_color = color.silver)
+    table.cell(dashboard, 1, 9, f_price(activeTarget), text_color = color.lime)
+
+    table.cell(dashboard, 0, 10, "RR / stop", text_color = color.silver)
+    table.cell(dashboard, 1, 10, str.tostring(riskReward, "#.##") + "R / " + (na(activeStopPips) ? "—" : str.tostring(activeStopPips, "#.1") + "p"), text_color = color.white)
+
+    table.cell(dashboard, 0, 11, "Trades W/L", text_color = color.silver)
+    table.cell(dashboard, 1, 11, str.tostring(strategy.closedtrades) + "  " + str.tostring(strategy.wintrades) + "/" + str.tostring(strategy.losstrades), text_color = color.white)
+
+    table.cell(dashboard, 0, 12, "Win rate", text_color = color.silver)
+    table.cell(dashboard, 1, 12, na(winRate) ? "—" : str.tostring(winRate, "#.0") + "%", text_color = na(winRate) ? color.gray : winRate >= 35 ? color.lime : color.orange)
+
+    table.cell(dashboard, 0, 13, "Profit factor", text_color = color.silver)
+    table.cell(dashboard, 1, 13, na(profitFactor) ? "—" : str.tostring(profitFactor, "#.##"), text_color = na(profitFactor) ? color.gray : profitFactor >= 1.2 ? color.lime : color.orange)
+
+if updateDashboard and not showDashboard
+    table.clear(dashboard, 0, 0, 1, 13)
+
+//=============================================================================
+// ALERTS
+//=============================================================================
+
+alertcondition(enteredLong, title = "Warrior Labs EURUSD LONG", message = "EURUSD LONG | Entry={{close}} | Minimum RR=3")
+alertcondition(enteredShort, title = "Warrior Labs EURUSD SHORT", message = "EURUSD SHORT | Entry={{close}} | Minimum RR=3")
