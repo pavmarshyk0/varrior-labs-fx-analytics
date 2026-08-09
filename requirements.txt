@@ -1,5 +1,7 @@
-# Core modules intentionally use the Python 3.11+ standard library.
-# Parquet is the canonical processed-data format.
+# Runtime conveniences for a full local research workstation.
+# Core package dependency metadata lives in pyproject.toml.
 pyarrow>=16
-# Install MetaTrader5 on the Windows machine connected to the terminal:
+pandas>=2.2
+plotly>=5.24
+streamlit>=1.36
 MetaTrader5>=5.0; platform_system == "Windows"

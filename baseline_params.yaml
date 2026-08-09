@@ -1,12 +1,22 @@
 project: demo-0.0-beta
 pair: EUR_USD
-timeframes: [M5, M15, H1]
 canonical_timezone: UTC
+timeframes: [M5, M15, H1]
 
 risk:
-  min_planned_rr: 3.0
   max_risk_fraction: 0.01
   paper_default_risk_fraction: 0.005
+  fixed_rr_control_baseline: 3.0
+  universal_min_rr_gate: false
+  invalidation_policy: STRUCTURAL
+
+research:
+  generation: GEN3
+  status: RESEARCH_IN_PROGRESS
+  tradable_edge_established: false
+  live_execution_enabled: false
+  ai_alpha_generation_enabled: false
+  primary_objective: POSITIVE_ROBUST_NET_OOS_EXPECTANCY
 
 tick_state:
   status: SHADOW
@@ -18,11 +28,12 @@ tick_state:
   parameter_status: UNVALIDATED_RESEARCH_DEFAULT
 
 macro_guard:
+  status: RESEARCH_CONTEXT_ONLY
   pre_veto_seconds: 300
   post_veto_seconds: 900
   parameter_status: UNVALIDATED_RESEARCH_DEFAULT
 
 meta_label:
-  status: DISABLED_UNTIL_SAMPLE
+  status: DISABLED_UNTIL_DETERMINISTIC_EDGE
   minimum_candidates: 800
   target_candidate_range: [800, 1500]

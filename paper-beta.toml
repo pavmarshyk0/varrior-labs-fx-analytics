@@ -1,17 +1,19 @@
 [risk]
-min_planned_rr = 3.0
 max_risk_fraction = 0.01
 default_paper_risk_fraction = 0.005
-fixed_rr_control_baseline = true
+fixed_rr_control_r = 3.0
+universal_min_rr_gate = false
+invalidation_policy = "STRUCTURAL"
 
 [execution]
 pip_size = 0.0001
 entry_slippage_pips = 0.0
 exit_slippage_pips = 0.0
 latency_ms = 0
+joint_execution_stress_enabled = true
 
 [macro_guard]
-# Research starting values only. Freeze only after walk-forward validation.
+status = "RESEARCH_CONTEXT_ONLY"
 pre_veto_seconds = 300
 post_veto_seconds = 900
 parameter_status = "UNVALIDATED_RESEARCH_DEFAULT"
@@ -23,10 +25,12 @@ half_width_minutes = 15
 [research]
 pair = "EUR_USD"
 canonical_timezone = "UTC"
-minimum_oos_trades = 250
-target_frequency_per_week_min = 2.0
-target_frequency_per_week_max = 5.0
-mode = "RESEARCH"
+generation = "GEN3"
+status = "RESEARCH_IN_PROGRESS"
+tradable_edge_established = false
+live_execution_enabled = false
+ai_alpha_generation_enabled = false
+primary_objective = "POSITIVE_ROBUST_NET_OOS_EXPECTANCY"
 
 [research.reliability]
 insufficient_below = 30
@@ -35,6 +39,7 @@ medium_below = 200
 shrinkage_prior_weight = 50.0
 
 [research.ranking]
+# Ranking is secondary to feasibility gates and independent confirmation.
 net_expectancy = 0.35
 stability = 0.20
 confidence = 0.15
