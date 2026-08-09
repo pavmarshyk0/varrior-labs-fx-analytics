@@ -1,0 +1,2 @@
+[console_scripts]
+demo-beta = demo_beta.cli:main
