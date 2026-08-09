@@ -1,7 +1,0 @@
-Metadata-Version: 2.4
-Name: demo-0-0-beta
-Version: 0.0.1
-Summary: Deterministic EUR/USD intraday research and paper-trading core
-Requires-Python: >=3.11
-Provides-Extra: mt5
-Requires-Dist: MetaTrader5>=5.0; extra == "mt5"
