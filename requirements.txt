@@ -1,0 +1,5 @@
+# Core modules intentionally use the Python 3.11+ standard library.
+# Parquet is the canonical processed-data format.
+pyarrow>=16
+# Install MetaTrader5 on the Windows machine connected to the terminal:
+MetaTrader5>=5.0; platform_system == "Windows"

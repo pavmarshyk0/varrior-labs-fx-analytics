@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "demo-0-0-beta"
+version = "0.0.1"
+description = "Deterministic EUR/USD intraday research and paper-trading core"
+requires-python = ">=3.11"
+
+[project.optional-dependencies]
+mt5 = ["MetaTrader5>=5.0"]
+
+[project.scripts]
+demo-beta = "demo_beta.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
