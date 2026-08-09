@@ -15,4 +15,16 @@ mt5 = ["MetaTrader5>=5.0"]
 demo-beta = "demo_beta.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = [
+  "demo_beta*",
+  "engine*",
+  "analytics*",
+  "data_ingestion*",
+]
+exclude = [
+  "tests*",
+  "data*",
+  "docs*",
+  "dashboard*",
+]
