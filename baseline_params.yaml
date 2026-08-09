@@ -1,0 +1,28 @@
+project: demo-0.0-beta
+pair: EUR_USD
+timeframes: [M5, M15, H1]
+canonical_timezone: UTC
+
+risk:
+  min_planned_rr: 3.0
+  max_risk_fraction: 0.01
+  paper_default_risk_fraction: 0.005
+
+tick_state:
+  status: SHADOW
+  excursion_atr_fraction: 0.10
+  excursion_spread_multiple: 1.50
+  pre_window_seconds: 30
+  excursion_window_seconds: 15
+  post_window_seconds: 45
+  parameter_status: UNVALIDATED_RESEARCH_DEFAULT
+
+macro_guard:
+  pre_veto_seconds: 300
+  post_veto_seconds: 900
+  parameter_status: UNVALIDATED_RESEARCH_DEFAULT
+
+meta_label:
+  status: DISABLED_UNTIL_SAMPLE
+  minimum_candidates: 800
+  target_candidate_range: [800, 1500]

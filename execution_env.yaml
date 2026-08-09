@@ -1,0 +1,23 @@
+execution:
+  use_executable_bid_ask: true
+  subtract_constant_spread: false
+  pip_size: 0.0001
+  default_entry_slippage_pips: 0.20
+  default_exit_slippage_pips: 0.30
+  latency_budget_ms: 100
+  missed_fill_stress: false
+
+regime_guard:
+  mode: SHADOW
+  hazard_mean_bars: 144
+  max_run_length_bars: 288
+  warmup_bars: 30
+  change_probability_threshold: 0.55
+  hard_veto_enabled: false
+
+research:
+  random_train_test_split_allowed: false
+  purge: true
+  embargo: true
+  block_bootstrap_required: true
+  minimum_oos_trades: 250

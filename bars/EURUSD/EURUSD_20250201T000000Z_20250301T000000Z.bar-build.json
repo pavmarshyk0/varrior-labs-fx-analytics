@@ -1,0 +1,46 @@
+{
+  "bar_counts": {
+    "H1": 480,
+    "M15": 1920,
+    "M5": 5760
+  },
+  "bar_files": {
+    "H1": "data\\processed\\bars\\EURUSD\\H1\\EURUSD_20250201T000000Z_20250301T000000Z.parquet",
+    "M15": "data\\processed\\bars\\EURUSD\\M15\\EURUSD_20250201T000000Z_20250301T000000Z.parquet",
+    "M5": "data\\processed\\bars\\EURUSD\\M5\\EURUSD_20250201T000000Z_20250301T000000Z.parquet"
+  },
+  "bars_with_extreme_spreads": 95,
+  "bars_with_heavy_zero_spread": 1,
+  "bars_with_suspicious_gaps": 16,
+  "configuration": {
+    "extreme_spread_pips": 5.0,
+    "pip_size": 0.0001,
+    "suspicious_gap_ms": 60000,
+    "zero_spread_heavy_ratio": 0.5
+  },
+  "cross_timeframe_reconciliation_failures": [],
+  "empty_expected_trading_intervals": 0,
+  "end": "2025-03-01T00:00:00Z",
+  "expected_market_closure_intervals": 2304,
+  "input_ticks": 1134021,
+  "m5_tick_count": 1134021,
+  "ohlc_invariant_violations": [],
+  "payload_sha256": "8991b8b22d2f5f1935b00a6dd1feeb840d300227b1c57c8524fff95b06789c01",
+  "populated_bar_counts": {
+    "H1": 480,
+    "M15": 1920,
+    "M5": 5760
+  },
+  "schema_version": "mt5-bars/v1",
+  "severity": "WARN",
+  "source_audit_report": null,
+  "source_dataset": "data\\processed\\mt5",
+  "start": "2025-02-01T00:00:00Z",
+  "suspicious_gap_count": 17,
+  "symbol": "EURUSD",
+  "timeframes": [
+    "M5",
+    "M15",
+    "H1"
+  ]
+}
