@@ -1,18 +1,72 @@
-# This .gitignore is appropriate for repositories deployed to GitHub Pages and using
-# a Gemfile as specified at https://github.com/github/pages-gem#conventional
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
-# Basic Jekyll gitignores (synchronize to Jekyll.gitignore)
-_site/
-.sass-cache/
-.jekyll-cache/
-.jekyll-metadata
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
 
-# Additional Ruby/bundler ignore for when you run: bundle install
-/vendor
+# Secrets / local configuration
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+.streamlit/secrets.toml
 
-# Specific ignore for GitHub Pages
-# GitHub Pages will always use its own deployed version of pages-gem
-# This means GitHub Pages will NOT use your Gemfile.lock and therefore it is
-# counterproductive to check this file into the repository.
-# Details at https://github.com/github/pages-gem/issues/768
-Gemfile.lock
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs / caches
+*.log
+.cache/
+tmp/
+temp/
+
+# Broker / research data
+# Keep source code and small explicit fixtures; do not commit broker history or generated datasets.
+data/raw/
+data/processed/
+data/research/
+data/cache/
+*.parquet
+*.feather
+*.arrow
+*.h5
+*.hdf5
+*.sqlite
+*.db
+
+# Model / experiment artifacts
+artifacts/
+outputs/
+runs/
+checkpoints/
+
+# Local MT5 / credentials
+MetaTrader 5/
+mt5_credentials*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Optional local dashboard state
+.streamlit/
+!.streamlit/config.toml
