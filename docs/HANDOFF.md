@@ -1,122 +1,219 @@
-# Handoff
+# Project Handoff — Varrior Labs FX Analytics
 
-## Current state — M4
+## Canonical state
 
-M1-M3 remain intact. M4 adds strict JSON economic-calendar snapshots with
-as-of anti-leakage validation, observed-only post-jump inputs, a resumable MT5
-historical tick -> validation -> Parquet pipeline, SHA-256 lineage sidecars,
-purged-fold-only session baseline fitting, OOS trade statistics, deterministic
-moving-block bootstrap 95% CIs, a frozen ablation matrix, and a lineage-aware
-Markdown report renderer. No code path calls `order_send`.
+`demo-0.0-beta` is currently a **deterministic EUR/USD alpha-research and validation platform**, not a production trading bot.
 
-All automated tests currently pass: **63/63** with Python 3.12 in the Codex
-workspace using `PYTHONPATH=src python -m unittest discover -s tests -v`.
-
-## Deterministic MT5 UTC bars
-
-Build research bars from immutable collected ticks with fixed UTC, half-open
-boundaries (a boundary tick belongs to its next bar):
-
-```
-demo-beta build-bars --start 2026-07-01T00:00:00Z --end 2026-08-01T00:00:00Z --input-dir data/processed/mt5 --output-dir data/processed/bars --symbol EURUSD --timeframes M5 M15 H1
+```text
+GEN-1: NO_EDGE_FOUND
+GEN-2: NO_EDGE_FOUND_GEN2
+GEN-3: RESEARCH_IN_PROGRESS
+TRADABLE_EDGE: NOT ESTABLISHED
+LIVE_EXECUTION: DISABLED
+AI_ALPHA_GENERATION: DISABLED
 ```
 
-M5 is built directly from raw MT5 ticks. Each populated row contains UTC bar
-bounds, independent bid and ask OHLC, tick count, first/last tick time, exact
-spread-pip min/median/p95/max (`pip_size=0.0001`), zero-spread metrics and
-maximum intertick gap. Empty bars are never written: coverage in the bar-build
-report records `empty_expected_trading_intervals` and
-`expected_market_closure_intervals` instead. This prevents fabricated weekend
-or forward-filled OHLC.
+The system must remain research/paper-only until a deterministic hypothesis survives matched controls, chronological confirmation and realistic execution costs.
 
-M15 aggregates M5 and H1 aggregates M15. Open/close use the first/last child;
-high/low use extrema; tick counts and raw spread samples are concatenated so
-higher-timeframe p95 is exact, never an average of lower-timeframe percentiles.
-The report validates tick-count reconciliation, OHLC ordering, and parent/child
-open-close reconstruction. It and the derived-bar lineage include source input,
-optional audit reference, UTC range, configuration, counts, severity, and a
-deterministic SHA-256 payload hash.
+## What is already implemented
 
-Quality flags are observational: `HAS_SUSPICIOUS_GAP` marks a non-closure gap
-over the configured 60 seconds (the July 24 16:00 M5 bar is identifiable);
-`EXTREME_SPREAD` marks >=5 pips; `ZERO_SPREAD_HEAVY` is >=50% zero spread; and
-`INCOMPLETE_OR_EMPTY_INTERVAL` marks higher bars with absent child intervals.
-None filters ticks or declares a price invalid. Structural reconciliation errors
-are `FAIL`; feed characteristics and missing trading intervals are `WARN`.
-Cross-boundary gaps are deterministically owned by the bar containing the next
-real tick; that bar records `max_intertick_gap_ms`, `suspicious_gap_count`, and
-the prior/next timestamped gap observation. This means distinct suspicious gaps
-can legitimately share one flagged bar; reports expose both the number of
-flagged bars and the total number of suspicious gaps. Expected Friday-to-Monday
-closures are never carried as suspicious gaps.
+The repository contains the research infrastructure developed through the first two alpha generations:
 
-## MT5 monthly raw-tick audit
+- MT5 EUR/USD historical tick collection via `copy_ticks_range` only;
+- resumable validated Parquet storage and immutable lineage sidecars;
+- explicit market-closure and broker-history lineage states;
+- deterministic UTC M5/M15/H1 construction;
+- spread, gap, density and zero-spread telemetry;
+- executable bid/ask research backtesting;
+- gross/net R decomposition and transaction-cost modelling;
+- volatility/event/joint execution stress;
+- structural invalidation and research exit policies;
+- purged chronological walk-forward validation and embargo;
+- block-bootstrap confidence intervals and reliability tiers;
+- candidate-universe freezing and locked-holdout infrastructure;
+- deterministic alpha-family benchmark and Gen-2 failure diagnostics;
+- local read-only Streamlit dashboard;
+- CI/tests and a safety constraint that no live `order_send` path exists.
 
-Before constructing bars or running a backtest, audit a collected range without
-changing any source file:
+## Empirical conclusions so far
 
+The original deterministic alpha families did not demonstrate robust positive expectancy.
+
+### Gen-1
+
+Tested fixed-clock families included baseline momentum, trend pullback, volatility breakout and a sparse liquidity-sweep reversal family. The adequately sampled families had negative observed gross expectancy, so exit optimization was not treated as a way to manufacture alpha.
+
+Conclusion: `NO_EDGE_FOUND`.
+
+### Gen-2
+
+Failure analysis examined direction/session slices, target-before-stop geometry and pre-entry feature relationships. No stable feature signal justified promotion of another executable deterministic family.
+
+Conclusion: `NO_EDGE_FOUND_GEN2`.
+
+These failures are evidence and must not be erased through threshold tuning.
+
+## Gen-3 architecture shift
+
+Gen-3 changes the research object from a fixed-clock indicator signal to an event/process model:
+
+```text
+MARKET STATE
+    ↓
+EVENT
+    ↓
+PRICE-DISCOVERY / MICROSTRUCTURE STATE
+    ↓
+MATCHED CONTROL
+    ↓
+FORWARD OUTCOME DISTRIBUTION
+    ↓
+INDEPENDENT CONFIRMATION
+    ↓
+EXECUTION-COST HURDLE
+    ↓
+ONLY THEN: TRADING RULE
 ```
-demo-beta audit-mt5-history --start 2026-07-01T00:00:00Z --end 2026-08-01T00:00:00Z --input-dir data/processed/mt5 --symbol EURUSD
+
+The first question is whether an observable state contains incremental information. Entry/SL/TP design comes later.
+
+## Gen-3 Tier-A program
+
+### G3_H03_MACRO_HAZARD — risk/context baseline
+
+Build deterministic scheduled-event hazard tagging before directional microstructure tests. Timestamp-only macro information is primarily a risk/execution layer: expected volatility, spread/slippage regime, blackout/NO_TRADE research and post-event context. It must not be presented as directional alpha without surprise information.
+
+### G3_H01_COHERENT_REPRICING — primary directional experiment
+
+Test whether short-horizon quote-process coherence adds information beyond the price impulse itself.
+
+Candidate observables:
+
+- directional bid/ask quote revisions;
+- synchronous bid/ask movement;
+- quote/tick arrival intensity;
+- inter-arrival distributions;
+- spread state and transition;
+- path efficiency;
+- short-window realized volatility.
+
+The mandatory control is a price impulse matched on direction, magnitude, session, volatility and spread context but lacking the candidate coherence state.
+
+Primary kill criterion: if microstructure proxies add no stable incremental information over the matched price-only impulse, kill H01.
+
+### G3_H02_BREAK_STATE — price-discovery classification
+
+Treat break continuation and failed-break reversal as two states of one event:
+
+```text
+BREAK
+ ├── ACCEPT  → continuation distribution
+ └── REJECT  → reversal distribution
 ```
 
-It writes a deterministic `mt5-history-audit/v1` JSON report containing expected
-chunk coverage, chunk/lineage checks, orphan artifacts, timestamp/duplicate/gap
-statistics, zero-spread counts and ratios by UTC day/hour, spread and
-tick-density distributions by UTC day/hour, and a SHA-256 of the report
-payload. Each suspicious trading-period gap has a deterministic observation
-with previous/next UTC timestamps, duration in milliseconds and seconds, UTC
-date/hour, closure-touch flag, and surrounding bid/ask. A gap completely inside
-the Saturday/Sunday UTC closure is excluded; a Friday-to-Monday gap spanning an
-expected closure is retained separately in `expected_market_closure_gap_observations`
-and does not count as suspicious. Extreme spreads retain every
-observation plus UTC day/hour counts, percentage of all ticks, and concentration
-in the most affected UTC hour. It is read-only: it neither deletes, fills,
-interpolates, winsorizes, nor otherwise modifies ticks.
+PDH/PDL, Asian highs/lows, previous-week levels, round numbers and local extrema are candidate `level_type` generators. A named level has no special status unless it beats matched generic extrema.
 
-The verified July 2026 raw MT5/Parquet sample has exact time, bid, and ask
-equality; Saturday/Sunday closures are lineage-only `EXPECTED_MARKET_CLOSED`
-records, not zero-tick Parquet data. Its audit found 7,312,709 ticks, 706 exact
-duplicates (0.009654%), 38,085 equal timestamps (0.520806%), and 68.5268%
-zero-spread ticks. Zero spread is a documented feed characteristic, not a
-corruption finding. Of 399 observations at least 5 pips wide, 397 occurred in
-UTC hour 00; the maximum was 36.8 pips.
+Primary kill criterion: if ACCEPT/REJECT classification does not add stable information over simple excursion/wick/return controls, kill or redesign H02 as a context feature.
 
-`FAIL` means a range is unsafe (missing expected trading artifact, lineage row
-mismatch, unexpected empty trading chunk, out-of-order timestamp, non-positive
-quote, or crossed quote). `WARN` retains potentially legitimate observations
-for review (orphan artifacts, any duplicate ticks, suspicious trading-period
-gaps, extreme spreads, or unusually low daily density). `PASS` has neither.
-The default review thresholds are explicit in the report and CLI: EURUSD pip
-size `0.0001`, suspicious gap `60,000 ms`, extreme spread `5 pips`, and low
-density below 20% of the observed median trading-day count. They are review
-flags only, configurable, and never cause data removal; they are not claims of
-corruption. Calendar-day coverage preserves half-open UTC semantics: it counts
-the UTC dates touched by `[start, end)` and never counts an end date at exactly
-00:00; `[2026-07-01T00:00:00Z, 2026-08-01T00:00:00Z)` is 31 calendar days.
+## Data governance
 
-## Frozen semantics
+Historical data used while designing Gen-3 cannot automatically be called a pristine Gen-3 final holdout.
 
-- `RR >= 3.0` is checked before outcome simulation.
-- `risk_fraction <= 0.01`; paper default is `0.005`.
-- LONG: entry ask + adverse slippage; barriers on bid.
-- SHORT: entry bid - adverse slippage; barriers on ask.
-- Bid/ask spread is embedded in executable PnL and is not subtracted again.
-- Gross R is mid-to-mid reference PnL; spread/slippage/commission bridge gross R to net R.
-- Same-millisecond evidence for both barriers returns `AMBIGUOUS`, label 0, with conservative adverse exit.
-- Feed validator reports anomalies but never mutates or silently cleans the input.
-- MT5 chunks are complete only when validated Parquet and lineage sidecar both exist; invalid chunks stop, never disappear. Empty chunks whose complete half-open UTC interval falls on Saturday/Sunday are explicitly recorded as `EXPECTED_MARKET_CLOSED` lineage-only skips (no Parquet); all other empty chunks remain `EMPTY_FEED` failures.
-- Calendar JSON accepts scheduled fields only; revised/actual values are rejected and snapshot `as_of` controls availability.
-- Scheduled high-impact events hard-veto but never generate/change direction.
-- Tick/Time/Regime modules remain SHADOW/RESEARCH and cannot execute, block, or open trades without promotion criteria.
-- Session median/MAD baselines are fitted separately from each purged training fold, never full history or validation rows.
-- M4 bootstrap results and ablation arms have no promotion or execution authority.
-- Meta-label fitting remains blocked below 800 total train+calibration candidates.
+Use chronological roles explicitly:
 
-## Next implementation order
+```text
+older history              → DISCOVERY
+later independent history  → CONFIRMATION
+already-inspected history  → SECONDARY / HISTORICAL OOS
+post-Gen3-freeze data       → NEW FORWARD LOCKED HOLDOUT
+```
 
-1. Obtain MT5 historical EUR/USD bid/ask ticks, exact broker symbol, and UTC date range. Retain every integrity report, outage and rollover period.
-2. Obtain immutable, as-of-dated scheduled EUR/USD calendar snapshots in `data/calendar/`.
-3. Build the candidate-event generator, then run only the frozen M4 arms over purged walk-forward OOS observations and write the report.
-4. Only after sufficient candidate volume, add DSR/PBO/SPA and prospective paper-trading promotion checks.
+Never unlock a final holdout to tune thresholds.
 
-Do not implement meta-labeling until roughly 800-1,500 primary candidate events exist. Do not add intraday rates/options modules until baseline evidence justifies their data cost.
+## Research firewall
+
+Every material experiment should be registered before outcome inspection with at least:
+
+- hypothesis ID and version;
+- dataset role/fingerprint;
+- feature definition hash;
+- parameter/config hash;
+- matched-control definition;
+- outcome horizons;
+- cost model version;
+- timestamp of freeze.
+
+A material change after observing results is a **new research trial/version** and counts toward the multiple-testing burden.
+
+## Outcome hierarchy
+
+Do not jump from statistical significance to `ALPHA_FOUND`.
+
+Recommended evidence states:
+
+```text
+NO_INFORMATION
+STATISTICAL_EFFECT
+ECONOMIC_EFFECT
+GROSS_ALPHA
+NET_ALPHA
+CONFIRMED_ALPHA
+PAPER_ELIGIBLE
+```
+
+For H01/H02 discovery, first compare forward distributions and matched controls: forward return, directional probability, MFE/MAE, time-to-MFE/MAE, future realized volatility and spread-adjusted move. Only construct a trading rule if incremental information survives.
+
+## Current risk semantics
+
+- risk per trade must never exceed 1%; lower research/paper risk is preferred;
+- no martingale, grid or averaging losers;
+- never widen a stop to avoid realizing a loss;
+- structural invalidation is preferred to a universal reward/risk target;
+- fixed 3R remains a useful frozen control where needed, but `RR >= 3` is **not** a universal Gen-3 research gate;
+- evaluate net expectancy after spread, slippage and commission;
+- correlated execution deterioration must be covered by joint stress, not only independent additive cost terms.
+
+## AI / ML policy
+
+Do not use TradingAgents, LLM signal generation, XGBoost, neural networks, RL or genetic optimization to rescue negative deterministic expectancy.
+
+AI may later serve as a frozen risk/audit/veto layer after deterministic edge is established. It has no alpha-promotion authority now.
+
+## Gen-3 implementation order
+
+```text
+M0  Freeze Gen-3 manifest / experiment registry
+ ↓
+M1  Audit extended-history tick lineage
+ ↓
+M2  Build deterministic DST/session/event-time context
+ ↓
+M3  Materialize minimal sub-minute feature set
+ ↓
+M4  Implement matched-control engine
+ ↓
+M5  Establish G3_H03 macro-hazard baseline
+ ↓
+M6  Run G3_H01 discovery
+      ├─ fail → kill hypothesis
+      └─ pass → freeze → independent confirmation → cost test
+ ↓
+M7  Run G3_H02 BREAK→ACCEPT/REJECT research
+ ↓
+M8  Test Tier-B ideas only if Tier-A evidence justifies more trials
+ ↓
+M9  Accumulate a new forward locked holdout after Gen-3 freeze
+ ↓
+M10 Paper trading only after confirmed positive net OOS alpha
+```
+
+## Non-negotiable research principle
+
+Do not maximize backtest performance. Maximize the probability that any surviving effect is real.
+
+```text
+mechanism → observable event → preregistration → matched control
+→ discovery → freeze → independent confirmation → cost test → trading rule
+```
+
+If Gen-3 concludes `NO_DIRECTIONAL_EDGE_FOUND_GEN3`, that is a valid result and the project must record it rather than optimize it away.
