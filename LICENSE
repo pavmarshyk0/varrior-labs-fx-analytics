@@ -1,0 +1,52 @@
+Varrior Labs Proprietary Source License v1.0
+
+Copyright (c) 2026 Paweł Maruszczyk.
+Project name: Varrior Labs FX Analytics.
+All rights reserved.
+
+1. Purpose
+
+The source code and accompanying materials in this repository are made
+available solely for inspection and evaluation. This repository is
+source-available, not open source.
+
+2. Permission required
+
+Except for the limited right to view the materials for evaluation, no
+permission is granted to use, copy, modify, merge, publish, distribute,
+sublicense, sell, deploy, host, execute as a service, create derivative
+works from, or otherwise exploit any part of the software.
+
+Any commercial or non-commercial use requires prior written permission
+from the copyright holder and a separate written agreement.
+
+3. Data and research artifacts
+
+This license does not grant rights to broker-derived data, market data,
+credentials, generated research artifacts, trademarks, project branding,
+or third-party materials. Those items may be subject to separate rights
+and restrictions.
+
+4. No trading authorization or claim
+
+The software is research-only. It does not constitute financial advice,
+does not establish a claim of profitability, and does not authorize live
+trading or deployment.
+
+5. No warranty
+
+THE SOFTWARE AND MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT,
+ACCURACY, OR FITNESS FOR TRADING. IN NO EVENT SHALL THE COPYRIGHT HOLDER
+BE LIABLE FOR ANY CLAIM, LOSS, DAMAGES, OR OTHER LIABILITY ARISING FROM,
+OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.
+
+6. Written permission
+
+Permission is valid only when granted in writing by the copyright holder.
+Silence, repository access, cloning, forking, or contribution does not
+constitute permission.
+
+For licensing inquiries, contact the repository owner through:
+https://github.com/pavmarshyk0/varrior-labs-fx-analytics
