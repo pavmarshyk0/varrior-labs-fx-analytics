@@ -108,7 +108,14 @@ The London-open and New-York-open unconditional effects changed sign between
 discovery and confirmation. Neither was promoted, no Gen-3 candidate was
 created from them, and locked-holdout outcomes remain uncomputed.
 
-Latest verified local validation: **73 tests passed**.
+The event-study runner now includes predeclared research-only definitions for
+expanded Asian range, DST-aware 17:00 New-York PDH/PDL, volatility compression,
+efficient trend impulse, conditional range mean reversion and a bar-level
+microstructure proxy. These studies do not create executable candidates or
+promote hypotheses automatically. Locked-holdout outcomes are not computed.
+
+Latest verified local validation: **80 tests passed** (`2` artifact-dependent
+smoke tests skipped when generated local artifacts are absent).
 
 ## What the first experiments found
 
