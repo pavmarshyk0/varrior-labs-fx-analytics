@@ -88,6 +88,28 @@ reproducible research artifacts + read-only dashboard
 
 Broker-derived datasets and generated research artifacts are intentionally excluded from the public source tree. See [`docs/DATA_POLICY.md`](docs/DATA_POLICY.md).
 
+## Current extended-history milestone
+
+The verified local EUR/USD history currently spans **2024-08 through 2026-08**:
+
+- 51,949,422 ticks;
+- 519 `COMPLETED` daily chunks;
+- 208 `EXPECTED_MARKET_CLOSED` chunks;
+- 3 `NO_BROKER_HISTORY` chunks;
+- monthly M5/M15/H1 partitions built through the full research scope.
+
+The first locked-protocol session-open study uses:
+
+- discovery: before `2025-08-01`;
+- confirmation: `2025-08-01 → 2026-02-01`;
+- final holdout: `2026-02-01 → 2026-08-01`, status `LOCKED`.
+
+The London-open and New-York-open unconditional effects changed sign between
+discovery and confirmation. Neither was promoted, no Gen-3 candidate was
+created from them, and locked-holdout outcomes remain uncomputed.
+
+Latest verified local validation: **73 tests passed**.
+
 ## What the first experiments found
 
 The first deterministic families did **not** demonstrate robust alpha. Rather than tuning them until a backtest turned green, the project retained the negative evidence and changed the research object itself.
@@ -288,3 +310,9 @@ Before contributing, read:
 ## Project philosophy
 
 The goal is not to maximize historical backtest performance. The goal is to find evidence that survives falsification, independent confirmation, and realistic execution costs before capital is involved.
+
+## License
+
+Copyright © 2026 Paweł Maruszczyk. All rights reserved.
+
+This repository is **source-available, not open source**. Viewing for evaluation is allowed, but any use, copying, modification, distribution, deployment, derivative work, or commercial/non-commercial exploitation requires prior written permission and a separate agreement. See [`LICENSE`](LICENSE).
