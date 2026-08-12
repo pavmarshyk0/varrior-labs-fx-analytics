@@ -1,3 +1,5 @@
+**English** | [Українська](README.uk.md) | [Polski](README.pl.md)
+
 # Varrior Labs FX Analytics
 
 [![CI](https://github.com/pavmarshyk0/varrior-labs-fx-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/pavmarshyk0/varrior-labs-fx-analytics/actions/workflows/ci.yml)
