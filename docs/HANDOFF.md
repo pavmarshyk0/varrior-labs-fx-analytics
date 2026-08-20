@@ -13,6 +13,24 @@ LIVE_EXECUTION: DISABLED
 AI_ALPHA_GENERATION: DISABLED
 ```
 
+## 20 August 2026 checkpoint and repository sync warning
+
+The latest verified local workstation state is ahead of GitHub `main`:
+
+- M0, M1, M2, M3A and M3A.1 are complete locally;
+- M3B causal materializers for H01 V2 and H02 V3 are implemented locally;
+- Dashboard V2.1 is implemented and smoke-tested locally;
+- latest reported local suite: `111 passed, 2 skipped, 13 subtests passed`;
+- H03 remains `BLOCKED_NO_CALENDAR_DATA`;
+- events have not been materialized for Gen-3 evaluation;
+- matched controls and forward outcomes have not been computed;
+- Gen-3 evidence remains `UNKNOWN`;
+- M4 matched-control infrastructure is the next permitted engineering task.
+
+GitHub `main` does not yet contain the exact M0-M3B and Dashboard V2.1 source tree. Do not claim those modules are publicly reproducible until the local source is synchronized, reviewed for private/broker-derived material and reproduced by CI.
+
+See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for the detailed local/public split.
+
 The system must remain research/paper-only until a deterministic hypothesis survives matched controls, chronological confirmation and realistic execution costs.
 
 ## What is already implemented
@@ -182,15 +200,17 @@ AI may later serve as a frozen risk/audit/veto layer after deterministic edge is
 ## Gen-3 implementation order
 
 ```text
-M0  Freeze Gen-3 manifest / experiment registry
+M0  Freeze Gen-3 manifest / experiment registry               [COMPLETE LOCALLY]
  ↓
-M1  Audit extended-history tick lineage
+M1  Audit extended-history tick lineage                       [COMPLETE LOCALLY]
  ↓
-M2  Build deterministic DST/session/event-time context
+M2  Build deterministic DST/session/event-time context        [COMPLETE LOCALLY]
  ↓
-M3  Materialize minimal sub-minute feature set
+M3A/M3A.1 Freeze Tier-A definitions and H02 dimensional fix   [COMPLETE LOCALLY]
  ↓
-M4  Implement matched-control engine
+M3B Implement H01 V2 / H02 V3 causal materializers            [COMPLETE LOCALLY; SOURCE SYNC PENDING]
+ ↓
+M4  Implement matched-control engine                          [NEXT]
  ↓
 M5  Establish G3_H03 macro-hazard baseline
  ↓
