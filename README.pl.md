@@ -14,13 +14,15 @@ Deterministyczna platforma badań ilościowych EUR/USD do falsyfikowalnego odkry
 |---|---|---|
 | Gen-1 | `NO_EDGE_FOUND` | Początkowe rodziny momentum / pullback / breakout nie wykazały stabilnej dodatniej oczekiwanej wartości OOS. |
 | Gen-2 | `NO_EDGE_FOUND_GEN2` | Diagnostyka nie znalazła stabilnego sygnału pre-entry wystarczająco silnego do promotion. |
-| Gen-3 | `RESEARCH_IN_PROGRESS` | Badania event-time price discovery, matched controls i krótkoterminowej mikrostruktury rynku. |
+| Gen-3 | `RESEARCH_IN_PROGRESS` | Materializatory H01 V2/H02 V3 i Dashboard V2.1 zostały zweryfikowane lokalnie; wyniki Gen-3 nie zostały obliczone. |
 
 ```text
 TRADABLE_EDGE: NOT ESTABLISHED
 LIVE_EXECUTION: DISABLED
 AI_ALPHA_GENERATION: DISABLED
 ```
+
+> **Stan synchronizacji repozytorium (20 sierpnia 2026):** M3B i Dashboard V2.1 są zweryfikowane w lokalnej kopii roboczej, ale ich pliki źródłowe nie zostały jeszcze zsynchronizowane z GitHub `main`. Nie uruchomiono Gen-3 events, matched controls ani outcomes. Dokładny podział stanu lokalnego i publicznego: [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md).
 
 Głównym celem jest **dodatnia i stabilna net out-of-sample expectancy po realistycznych kosztach wykonania**.
 
@@ -108,7 +110,7 @@ Pierwsze badanie session-open z locked protocol wykorzystuje:
 
 Bezwarunkowe efekty London open i New York open zmieniły znak między discovery a confirmation. Żaden z nich nie został promoted, nie utworzono na ich podstawie Gen-3 candidate, a wyniki locked holdout pozostają nieobliczone.
 
-Ostatnia zweryfikowana lokalna walidacja: **73 tests passed**.
+Ostatni zweryfikowany lokalny checkpoint: **111 passed, 2 skipped, 13 subtests passed**. Wynik dotyczy nowszego lokalnego drzewa M3B/Dashboard V2.1 i nie jest jeszcze odtwarzalny z publicznego `main`, dopóki dokładny kod źródłowy nie zostanie zsynchronizowany.
 
 ## Co pokazały pierwsze eksperymenty
 
