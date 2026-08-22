@@ -14,13 +14,15 @@
 |---|---|---|
 | Gen-1 | `NO_EDGE_FOUND` | Початкові сімейства momentum / pullback / breakout не змогли підтвердити стійке позитивне OOS-маточікування. |
 | Gen-2 | `NO_EDGE_FOUND_GEN2` | Діагностика не виявила стабільного pre-entry сигналу, достатньо сильного для promotion. |
-| Gen-3 | `RESEARCH_IN_PROGRESS` | Дослідження event-time price discovery, matched controls та короткострокової market microstructure. |
+| Gen-3 | `RESEARCH_IN_PROGRESS` | Матеріалізатори H01 V2/H02 V3 і Dashboard V2.1 перевірені локально; Gen-3 outcomes ще не обчислювалися. |
 
 ```text
 TRADABLE_EDGE: NOT ESTABLISHED
 LIVE_EXECUTION: DISABLED
 AI_ALPHA_GENERATION: DISABLED
 ```
+
+> **Статус синхронізації репозиторію (22 серпня 2026):** ця гілка містить перевірений source tree M3B і Dashboard V2.1. Gen-3 events, matched controls та outcomes не запускалися; `main` не зміниться до review і merge draft pull request. Детальний статус: [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md).
 
 Основна мета — **позитивне та стійке net out-of-sample маточікування після реалістичних витрат виконання**.
 
@@ -108,7 +110,7 @@ reproducible research artifacts + read-only dashboard
 
 Безумовні ефекти London open та New York open змінили знак між discovery і confirmation. Жоден не був promoted, на їх основі не створено Gen-3 candidate, а результати locked holdout залишаються необчисленими.
 
-Остання перевірена локальна валідація: **73 tests passed**.
+Останній перевірений локальний checkpoint: **111 passed, 2 skipped, 13 subtests passed**. Ця гілка містить відповідний source M3B/Dashboard V2.1; GitHub CI ще має відтворити результат перед merge.
 
 ## Що показали перші експерименти
 
@@ -224,7 +226,8 @@ GitHub CI запускає suite на Python 3.11 та 3.12.
 Dashboard читає лише локальні precomputed research artifacts:
 
 ```bash
-python -m streamlit run app.py
+Start_Varrior_Dashboard.bat
+# або: python -m streamlit run dashboard/app.py
 ```
 
 Публічний репозиторій навмисно не містить broker-derived datasets, необхідних для наповнення dashboard. Після запуску research pipeline вкажіть у sidebar локальну директорію `data/research/alpha/latest`.
