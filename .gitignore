@@ -68,5 +68,6 @@ mt5_credentials*
 .ipynb_checkpoints/
 
 # Optional local dashboard state
-.streamlit/
+.streamlit/*
 !.streamlit/config.toml
+config/local/dashboard_paths.json
