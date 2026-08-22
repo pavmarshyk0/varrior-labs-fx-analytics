@@ -1,3 +1,5 @@
+**English** | [Українська](README.uk.md) | [Polski](README.pl.md)
+
 # Varrior Labs FX Analytics
 
 [![CI](https://github.com/pavmarshyk0/varrior-labs-fx-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/pavmarshyk0/varrior-labs-fx-analytics/actions/workflows/ci.yml)
@@ -12,13 +14,15 @@ Deterministic EUR/USD quantitative research platform for falsifiable alpha disco
 |---|---|---|
 | Gen-1 | `NO_EDGE_FOUND` | Initial momentum / pullback / breakout families failed to establish robust positive OOS expectancy. |
 | Gen-2 | `NO_EDGE_FOUND_GEN2` | Diagnostics found no stable pre-entry signal strong enough to justify promotion. |
-| Gen-3 | `RESEARCH_IN_PROGRESS` | Event-time price discovery, matched controls and short-horizon microstructure research. |
+| Gen-3 | `RESEARCH_IN_PROGRESS` | H01 V2/H02 V3 materializers and Dashboard V2.1 are verified locally; Gen-3 outcomes remain uncomputed. |
 
 ```text
 TRADABLE_EDGE: NOT ESTABLISHED
 LIVE_EXECUTION: DISABLED
 AI_ALPHA_GENERATION: DISABLED
 ```
+
+> **Repository sync notice (22 August 2026):** This branch contains the verified M3B and Dashboard V2.1 source tree. Gen-3 events, matched controls and outcomes have not been run; `main` remains unchanged until the draft pull request is reviewed and merged. See [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) for the exact state.
 
 The primary objective is **positive, robust net out-of-sample expectancy after realistic execution costs**.
 
@@ -114,8 +118,7 @@ efficient trend impulse, conditional range mean reversion and a bar-level
 microstructure proxy. These studies do not create executable candidates or
 promote hypotheses automatically. Locked-holdout outcomes are not computed.
 
-Latest verified local validation: **80 tests passed** (`2` artifact-dependent
-smoke tests skipped when generated local artifacts are absent).
+Latest verified local validation: **111 passed, 2 skipped, 13 subtests passed**. This branch carries the corresponding M3B/Dashboard V2.1 source; GitHub CI must still reproduce it before merge.
 
 ## What the first experiments found
 
@@ -231,7 +234,8 @@ GitHub CI runs the suite on Python 3.11 and 3.12.
 The dashboard reads local precomputed research artifacts only:
 
 ```bash
-python -m streamlit run app.py
+Start_Varrior_Dashboard.bat
+# or: python -m streamlit run dashboard/app.py
 ```
 
 The public repository intentionally does not contain the broker-derived datasets required to populate the dashboard. Point the sidebar at your local `data/research/alpha/latest` directory after running the research pipeline.
