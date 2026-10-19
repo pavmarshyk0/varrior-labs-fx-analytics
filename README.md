@@ -1,6 +1,6 @@
 **English** | [Українська](README.uk.md) | [Polski](README.pl.md)
 
-# Varrior Labs FX Analytics
+# Warrior Labs FX Analytics
 
 [![CI](https://github.com/pavmarshyk0/varrior-labs-fx-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/pavmarshyk0/varrior-labs-fx-analytics/actions/workflows/ci.yml)
 
@@ -184,6 +184,20 @@ The project follows several non-negotiable rules:
 A universal `RR >= 3` gate is **not** the current research objective. Fixed 3R remains available as a frozen control where useful; structural invalidation and net expectancy drive research decisions.
 
 See [`docs/RESEARCH_GOVERNANCE.md`](docs/RESEARCH_GOVERNANCE.md) for the canonical protocol.
+
+
+## Reviewer quick start (no broker data required)
+
+The public codebase can be installed and tested without access to the private EUR/USD dataset:
+
+```bash
+python -m pip install -e .
+python -m unittest discover -s tests -v
+```
+
+The tests use synthetic fixtures and exercise research components; they do **not** independently reproduce the historical 51.9M-tick research findings. Those figures and the 73-test milestone describe a previously reported local run, not a guarantee about the current checkout. Check the CI badge and run the suite for current results. Reproducing market-data experiments requires separately obtained, authorized MT5 history.
+
+**Maturity:** research prototype / pre-alpha. Gen-3 hypotheses are in progress, not validated trading signals. `demo-beta` is the existing compatibility CLI name; renaming it would require coordinated migration. The GitHub repository slug retains the historical spelling `varrior` for link compatibility.
 
 ## Installation
 
