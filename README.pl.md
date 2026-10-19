@@ -14,13 +14,15 @@ Deterministyczna platforma badań ilościowych EUR/USD do falsyfikowalnego odkry
 |---|---|---|
 | Gen-1 | `NO_EDGE_FOUND` | Początkowe rodziny momentum / pullback / breakout nie wykazały stabilnej dodatniej oczekiwanej wartości OOS. |
 | Gen-2 | `NO_EDGE_FOUND_GEN2` | Diagnostyka nie znalazła stabilnego sygnału pre-entry wystarczająco silnego do promotion. |
-| Gen-3 | `RESEARCH_IN_PROGRESS` | Badania event-time price discovery, matched controls i krótkoterminowej mikrostruktury rynku. |
+| Gen-3 | `RESEARCH_IN_PROGRESS` | Materializatory H01 V2/H02 V3 i Dashboard V2.1 zostały zweryfikowane lokalnie; wyniki Gen-3 nie zostały obliczone. |
 
 ```text
 TRADABLE_EDGE: NOT ESTABLISHED
 LIVE_EXECUTION: DISABLED
 AI_ALPHA_GENERATION: DISABLED
 ```
+
+> **Stan synchronizacji repozytorium (22 sierpnia 2026):** ta gałąź zawiera zweryfikowane źródła M3B i Dashboard V2.1. Nie uruchomiono Gen-3 events, matched controls ani outcomes; `main` pozostanie bez zmian do review i merge draft pull request. Dokładny status: [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md).
 
 Głównym celem jest **dodatnia i stabilna net out-of-sample expectancy po realistycznych kosztach wykonania**.
 
@@ -108,7 +110,7 @@ Pierwsze badanie session-open z locked protocol wykorzystuje:
 
 Bezwarunkowe efekty London open i New York open zmieniły znak między discovery a confirmation. Żaden z nich nie został promoted, nie utworzono na ich podstawie Gen-3 candidate, a wyniki locked holdout pozostają nieobliczone.
 
-Ostatnia zweryfikowana lokalna walidacja: **73 tests passed**.
+Ostatni zweryfikowany lokalny checkpoint: **111 passed, 2 skipped, 13 subtests passed**. Ta gałąź zawiera odpowiednie źródła M3B/Dashboard V2.1; GitHub CI musi jeszcze odtworzyć wynik przed merge.
 
 ## Co pokazały pierwsze eksperymenty
 
@@ -224,7 +226,8 @@ GitHub CI uruchamia suite na Python 3.11 i 3.12.
 Dashboard odczytuje wyłącznie lokalne precomputed research artifacts:
 
 ```bash
-python -m streamlit run app.py
+Start_Varrior_Dashboard.bat
+# albo: python -m streamlit run dashboard/app.py
 ```
 
 Publiczne repozytorium celowo nie zawiera broker-derived datasets wymaganych do zasilenia dashboardu. Po uruchomieniu research pipeline wskaż w sidebar lokalny katalog `data/research/alpha/latest`.
