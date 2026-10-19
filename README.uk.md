@@ -1,6 +1,6 @@
 [English](README.md) | **Українська** | [Polski](README.pl.md)
 
-# Varrior Labs FX Analytics
+# Warrior Labs FX Analytics
 
 [![CI](https://github.com/pavmarshyk0/varrior-labs-fx-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/pavmarshyk0/varrior-labs-fx-analytics/actions/workflows/ci.yml)
 
@@ -316,3 +316,16 @@ M10 Paper trading only after confirmed positive net alpha
 Copyright © 2026 Paweł Maruszczyk. All rights reserved.
 
 Цей репозиторій є **source-available, а не open source**. Перегляд для оцінювання дозволений, але будь-яке використання, копіювання, модифікація, розповсюдження, deployment, derivative work або commercial/non-commercial exploitation потребує попереднього письмового дозволу та окремої угоди. Див. [`LICENSE`](LICENSE).
+
+## Швидка перевірка для рецензента (без брокерських даних)
+
+Публічний код можна встановити й протестувати без приватного датасету EUR/USD:
+
+```bash
+python -m pip install -e .
+python -m unittest discover -s tests -v
+```
+
+Тести використовують синтетичні приклади та **не** відтворюють незалежно історичні результати на 51,9 млн тіків. Ці цифри й згадка про 73 тести описують раніше заявлений локальний запуск. Актуальний стан слід перевіряти через CI та локальний запуск тестів. Для відтворення досліджень потрібна окремо отримана легальна історія MT5.
+
+**Зрілість:** дослідницький прототип / pre-alpha. Гіпотези Gen-3 ще не є підтвердженими торговими сигналами. `demo-beta` — сумісна назва чинної CLI-команди, а історичний slug репозиторію `varrior` збережено, щоб не ламати посилання.
