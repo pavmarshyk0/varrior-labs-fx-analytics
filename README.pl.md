@@ -1,6 +1,6 @@
 [English](README.md) | [Українська](README.uk.md) | **Polski**
 
-# Varrior Labs FX Analytics
+# Warrior Labs FX Analytics
 
 [![CI](https://github.com/pavmarshyk0/varrior-labs-fx-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/pavmarshyk0/varrior-labs-fx-analytics/actions/workflows/ci.yml)
 
@@ -316,3 +316,16 @@ Celem nie jest maksymalizacja historycznej wydajności backtestu. Celem jest zna
 Copyright © 2026 Paweł Maruszczyk. All rights reserved.
 
 To repozytorium jest **source-available, a nie open source**. Przeglądanie w celu oceny jest dozwolone, ale jakiekolwiek użycie, kopiowanie, modyfikowanie, dystrybucja, deployment, derivative work lub commercial/non-commercial exploitation wymaga uprzedniej pisemnej zgody i osobnej umowy. Zobacz [`LICENSE`](LICENSE).
+
+## Szybka weryfikacja (bez danych brokera)
+
+Publiczny kod można zainstalować i przetestować bez prywatnego zbioru EUR/USD:
+
+```bash
+python -m pip install -e .
+python -m unittest discover -s tests -v
+```
+
+Testy wykorzystują dane syntetyczne i **nie** odtwarzają niezależnie historycznych wyników dla 51,9 mln ticków. Te liczby i wzmianka o 73 testach opisują wcześniej zgłoszony lokalny przebieg. Aktualny stan należy sprawdzić w CI i przez uruchomienie testów. Reprodukcja badań wymaga osobno pozyskanych, legalnych danych MT5.
+
+**Dojrzałość:** prototyp badawczy / pre-alpha. Hipotezy Gen-3 nie są potwierdzonymi sygnałami transakcyjnymi. `demo-beta` to zachowana dla zgodności nazwa CLI; historyczny slug repozytorium `varrior` pozostaje dla kompatybilności linków.
