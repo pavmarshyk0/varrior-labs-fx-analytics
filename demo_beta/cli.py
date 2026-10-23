@@ -96,7 +96,7 @@ def _build_parser() -> argparse.ArgumentParser:
     alpha.add_argument("--minimum-train-size", type=int, default=40); alpha.add_argument("--validation-size", type=int, default=30); alpha.add_argument("--candidate-stride-bars", type=int, default=12); alpha.add_argument("--max-holding-bars", type=int, default=36)
     diagnose = sub.add_parser("run-gen2-diagnostics", help="read-only V1 root-cause and outcome-geometry diagnostics")
     diagnose.add_argument("--bars-dir", required=True); diagnose.add_argument("--alpha-dir", required=True); diagnose.add_argument("--output-dir", required=True)
-    events = sub.add_parser("run-event-studies", help="research-only discovery/confirmation session-open studies")
+    events = sub.add_parser("run-event-studies", help="predeclared non-executable discovery/confirmation event studies")
     events.add_argument("--bars-dir", required=True); events.add_argument("--output-dir", required=True)
     return parser
 
@@ -161,8 +161,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"RESEARCH: diagnostics written to {path}")
         return 0
     if args.command == "run-event-studies":
-        from engine.event_studies import run_session_open_studies
-        path=run_session_open_studies(args.bars_dir,args.output_dir); print(f"RESEARCH: event studies written to {path}"); return 0
+        from engine.event_studies import run_predeclared_event_studies
+        path = run_predeclared_event_studies(args.bars_dir, args.output_dir)
+        print(f"RESEARCH: predeclared event studies written to {path}")
+        return 0
     ticks = load_ticks_csv(args.ticks)
     if args.command == "validate-ticks":
         report = TickFeedValidator(

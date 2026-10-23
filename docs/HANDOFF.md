@@ -53,6 +53,35 @@ Conclusion: `NO_EDGE_FOUND_GEN2`.
 
 These failures are evidence and must not be erased through threshold tuning.
 
+## Extended-history and event-study checkpoint
+
+The verified local broker history spans `2024-08 → 2026-08` and contains:
+
+- `51,949,422` EUR/USD ticks;
+- `519 COMPLETED` daily chunks;
+- `208 EXPECTED_MARKET_CLOSED` chunks;
+- `3 NO_BROKER_HISTORY` chunks;
+- monthly M5/M15/H1 partitions for the research scope.
+
+The chronological event-study roles are frozen as:
+
+```text
+before 2025-08-01              → DISCOVERY
+2025-08-01 through 2026-02-01  → CONFIRMATION
+2026-02-01 through 2026-08-01  → LOCKED_HOLDOUT
+```
+
+The original London/New-York open unconditional means changed sign between
+discovery and confirmation, so neither was promoted.
+
+`engine/event_studies.py` now predeclares non-executable studies for session
+opens, expanded Asian range, DST-aware 17:00 New-York PDH/PDL, volatility
+compression, efficient trend impulse, conditional range mean reversion and a
+clearly labelled bar-level microstructure proxy. These definitions create no
+Gen-3 candidate automatically. Discovery and confirmation remain separate.
+The locked segment records event counts only and never reads or computes
+future-price outcomes.
+
 ## Gen-3 architecture shift
 
 Gen-3 changes the research object from a fixed-clock indicator signal to an event/process model:
